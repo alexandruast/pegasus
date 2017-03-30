@@ -1,0 +1,25 @@
+- include: tasks/install.yml
+  when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+- name: add pritunl service config file
+  template:
+    src: pritunl.conf.j2
+    dest: /etc/pritunl.conf
+
+- name: add consul service config file
+  template:
+    src: pritunl.json.j2
+    dest: /etc/consul.d/pritunl.json
+  ignore_errors: yes
+
+- name: ensure consul service is enabled and (re)started
+  systemd:
+    name: consul
+    enabled: yes
+    state: restarted
+
+- name: ensure pritunl service is enabled and (re)started
+  systemd:
+    name: pritunl
+    enabled: yes
+    state: restarted

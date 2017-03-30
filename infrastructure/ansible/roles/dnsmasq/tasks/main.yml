@@ -1,0 +1,39 @@
+- name: ensure dnsmasq is installed
+  apt:
+    name: dnsmasq
+    state: present
+    update_cache: yes
+
+- name: ensure needed directories exist
+  file:
+    dest: /etc/dnsmasq.d
+    state: directory
+
+- name: ensure .consul domains delegate to consul
+  copy:
+    content: |
+      server=/consul./127.0.0.1#8600
+      listen-address=127.0.0.1
+      bind-interfaces
+    dest: /etc/dnsmasq.d/consul
+
+- name: ensure dns requests over ethernet are allowed
+  copy:
+    content: interface={{ansible_default_ipv4.alias}}
+    dest: /etc/dnsmasq.d/interface
+  when: "{{listen_on_ethernet is defined}}"
+
+- name: ensure dns service is enabled and running
+  systemd:
+    name: dnsmasq
+    enabled: yes
+    state: restarted
+    daemon_reload: yes
+
+- name: ensure dnsmasq is used for resolving dns
+  lineinfile:
+    insertbefore: BOF
+    state: present
+    line: nameserver 127.0.0.1
+    dest: /etc/resolvconf/resolv.conf.d/consul
+    create: yes

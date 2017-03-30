@@ -1,0 +1,20 @@
+- include: tasks/install.yml
+  when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+- name: ensure ethernet ip is known
+  setup:
+
+- name: ensure configuration is in place
+  template:
+    src: "{{agent_mode}}.json.j2"
+    dest: "{{config_dir}}/{{agent_mode}}.json"
+    owner: "{{user}}"
+    group: "{{group}}"
+  ignore_errors: yes
+
+- name: ensure service is enabled, running and reloaded
+  systemd:
+    name: "{{name}}"
+    enabled: yes
+    state: started
+    daemon_reload: yes

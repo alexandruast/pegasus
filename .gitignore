@@ -1,0 +1,9 @@
+.terragrunt/
+*.retry
+*.tfstate.backup
+*.tfstate.*.backup
+.terraform/
+*.exe
+*.log
+*/assets/*/*.tar.gz
+terragrunt/*/*

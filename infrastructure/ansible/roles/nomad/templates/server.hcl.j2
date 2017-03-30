@@ -1,0 +1,9 @@
+datacenter = "{{datacenter}}"
+data_dir = "{{data_dir}}"
+bind_addr = "{{ansible_default_ipv4.address}}"
+enable_syslog = true
+log_level = "debug"
+server {
+  enabled = true
+  bootstrap_expect = {{cluster_size}}
+}

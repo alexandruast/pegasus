@@ -1,0 +1,51 @@
+- hosts: all
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - role: base
+      tags: base
+      when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+    - role: dnsmasq
+      tags: dnsmasq
+      listen_on_ethernet: yes
+      when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+    - role: hostname
+      tags: hostname
+      hostname: "{{host_group_name}}-{{groups.all.index(inventory_hostname)}}"
+      when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+    - role: consul
+      tags: consul
+      agent_mode: client
+
+    - role: vpn
+      tags: vpn
+
+    - role: reboot
+      tags: reboot
+      when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+  handlers:
+    - name: reload ufw
+      ufw: state=reloaded
+
+  tasks:
+    - name: ensure custom facts directory exists
+      file:
+        path: /etc/ansible/facts.d
+        recurse: yes
+        state: directory
+      when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+    - name: install custom fact for setup completed
+      copy:
+        src: facts/setup_completed.fact
+        dest: /etc/ansible/facts.d/setup_completed.fact
+        mode: 0644
+      when: ansible_local.setup_completed is not defined or force_install|default(false)|bool
+
+    - name: reload ansible_local
+      setup: filter=ansible_local

@@ -1,0 +1,75 @@
+{
+  "variables": {
+    "source_repo" : "",
+    "source_tag" : "",
+    "install_script" : "",
+    "path_string" : "/opt/jdk/bin",
+    "JAVA_HOME" : "/opt/jdk",
+    "assets_source" : "",
+    "assets_dest" : "",
+    "install_args" : "",
+    "dest_repo" : "",
+    "dest_tag_prefix" : "",
+    "login_username" : "",
+    "login_password" : ""
+  },
+
+  "builders": [
+    {
+      "type" : "docker",
+      "image" : "{{user `source_repo`}}:{{user `source_tag`}}",
+      "run_command" : ["-d", "-i", "-t", "{{.Image}}", "/bin/sh"],
+      "commit" : true,
+      "login" : true,
+      "login_username": "{{user `login_username`}}",
+      "login_password": "{{user `login_password`}}",
+      "changes": [
+        "ENV PATH $/{PATH/}:{{user `path_string`}}",
+        "ENV JAVA_HOME {{user `JAVA_HOME`}}"
+      ]
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type" : "shell",
+      "inline"  : [
+            "sleep 10",
+            "mkdir -p {{user `assets_dest`}}"
+      ]
+    },
+    {
+      "type" : "file",
+      "source" : "{{user `install_script`}}",
+      "destination" : "{{user `assets_dest`}}/{{user `install_script`}}"
+    },
+    {
+      "type" : "file",
+      "source" : "{{user `assets_source`}}",
+      "destination" : "{{user `assets_dest`}}"
+    },
+    {
+      "type" : "shell",
+      "inline"  : [
+            "chmod +x {{user `assets_dest`}}/{{user `install_script`}}",
+            "{{user `assets_dest`}}/{{user `install_script`}} {{user `install_args`}}"
+      ]
+    }
+  ],
+
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "{{user `login_username`}}/{{user `dest_repo`}}",
+        "tag": "{{user `dest_tag_prefix`}}-{{isotime \"20060102150405\"}}"
+      },
+      {
+        "type" : "docker-push",
+        "login" : "true",
+        "login_username": "{{user `login_username`}}",
+        "login_password": "{{user `login_password`}}"
+      }
+    ]
+  ]
+}

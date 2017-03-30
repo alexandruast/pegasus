@@ -1,0 +1,11 @@
+name: nomad
+version: 0.5.4
+download_url: https://releases.hashicorp.com/{{name}}/{{version}}/{{name}}_{{version}}_linux_amd64.zip
+
+user: "{{name}}"
+group: "{{name}}"
+install_dir: /usr/local/bin
+data_dir: /mnt/{{name}}
+config_dir: /etc/{{name}}.d
+
+cluster_size: "{{groups.all|length}}"

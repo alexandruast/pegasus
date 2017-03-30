@@ -1,0 +1,35 @@
+- name: tune system limits
+  lineinfile: dest=/etc/security/limits.conf
+              line='{{item}}'
+  with_items:
+    - '* hard nofile 64000'
+    - '* soft nofile 64000'
+    - 'root hard nofile 64000'
+    - 'root soft nofile 64000'
+
+- name: add keys to apt
+  apt_key:
+    id: "{{item}}"
+    keyserver: hkp://keyserver.ubuntu.com
+    state: present
+  with_items:
+   - 42F3E95A2C4F08279C4960ADD68FA50FEA312927
+   - 7568D9BB55FF9E5287D586017AE645C0CF8E292A
+
+- name: add ppas to apt
+  apt_repository:
+    repo: "{{item}}"
+    state: present
+  with_items:
+    - deb http://repo.pritunl.com/stable/apt xenial main
+
+- name: ensure apt packages are installed
+  apt:
+    name: "{{item}}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - pritunl
+
+- name: removing executable permissions from systemd
+  file: path=/etc/systemd/system/pritunl.service state=file mode=a-x
